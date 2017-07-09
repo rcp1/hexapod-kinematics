@@ -166,9 +166,8 @@ Vector3d KinematicControl::calcYawedCurve(const Vector3d& MCSTCPInit, const Vect
     MCSTCPnew.y -= m_turnDistance;
 
     // cart to polar
-    float r = MCSTCPnew.length();
-    float phi = atan2f(MCSTCPnew.y, MCSTCPnew.x);
-    phi += BCSTCPBezier.x * m_arcAngle;
+    const float r = sqrtf(pow(MCSTCPnew.x, 2) + pow(MCSTCPnew.y, 2));
+    const float phi = atan2f(MCSTCPnew.y, MCSTCPnew.x) + BCSTCPBezier.x * m_arcAngle;
 
     // pol to cart
     MCSTCPnew.x = r * cosf(phi);
@@ -222,13 +221,13 @@ float KinematicControl::calcMaxTurnRadiusOfLegs(const float &turnDistance)
         m_trafoCoordBodyToHip.backward(m_BCSTCPInit, MCSInit, i);
         MCSInit.y -= turnDistance;
         // cart to polar
-        float r = MCSInit.length();
+        const float r = sqrtf(pow(MCSInit.x, 2) + pow(MCSInit.y, 2));
         if (r >= maxRadiusOfTurn)
         {
             maxRadiusOfTurn = r;
         }
     }
-    if (turnDistance < 0.0f)
+    if (turnDistance < 0.f)
         maxRadiusOfTurn = -maxRadiusOfTurn;
 
     return maxRadiusOfTurn;

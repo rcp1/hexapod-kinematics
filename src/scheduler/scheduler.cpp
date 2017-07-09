@@ -3,11 +3,11 @@
 #include "angles.h"
 
 const uint8_t Scheduler::m_bluetoothDelimiter = (uint8_t)'\n';
-const float Scheduler::m_increaseBodyTranslationFactor = (float)0.005f;
-const float Scheduler::m_increaseBodyRotationFactor = (float)math::deg2rad(3);
-const float Scheduler::m_increaseSpeedFactor = (float)0.005;
-const float Scheduler::m_increaseSwingLength = (float)0.05f;
-const float Scheduler::m_increaseTurnAngle = (float)0.05f;
+const float Scheduler::m_increaseBodyTranslationFactor = 0.005f;
+const float Scheduler::m_increaseBodyRotationFactor = math::deg2rad(3);
+const float Scheduler::m_increaseSpeedFactor = 0.005f;
+const float Scheduler::m_increaseSwingLength = 0.05f;
+const float Scheduler::m_increaseTurnAngle = 0.05f;
 
 Scheduler::Scheduler() :
     m_kinControl(m_interpolationHandler, m_gaitHandler, m_bodyHandler),
@@ -59,18 +59,22 @@ void Scheduler::transition()
             m_taskInput.finished();
             break;
         case taskOutput:
-            Serial.print("Body: ");
-            Serial.print(m_kinControl.getBodyPose().m_position.x, 4);
-            Serial.print(" | ");
-            Serial.print(m_kinControl.getBodyPose().m_position.y, 4);
-            Serial.print(" | ");
-            Serial.print(m_kinControl.getBodyPose().m_position.z, 4);
-            Serial.print(" | ");
-            Serial.print(math::rad2deg(m_kinControl.getBodyPose().m_orientation.psi), 4);
-            Serial.print(" | ");
-            Serial.print(math::rad2deg(m_kinControl.getBodyPose().m_orientation.phi), 4);
-            Serial.print(" | ");
-            Serial.println(math::rad2deg(m_kinControl.getBodyPose().m_orientation.theta), 4);
+            Serial.print("turnAngle: ");
+            Serial.println(m_turnAngle, 4);
+            Serial.print("Speed: ");
+            Serial.println(m_gaitHandler.getSpeed(), 4);
+//            Serial.print("Body: ");
+//            Serial.print(m_kinControl.getBodyPose().m_position.x, 4);
+//            Serial.print(" | ");
+//            Serial.print(m_kinControl.getBodyPose().m_position.y, 4);
+//            Serial.print(" | ");
+//            Serial.print(m_kinControl.getBodyPose().m_position.z, 4);
+//            Serial.print(" | ");
+//            Serial.print(math::rad2deg(m_kinControl.getBodyPose().m_orientation.psi), 4);
+//            Serial.print(" | ");
+//            Serial.print(math::rad2deg(m_kinControl.getBodyPose().m_orientation.phi), 4);
+//            Serial.print(" | ");
+//            Serial.println(math::rad2deg(m_kinControl.getBodyPose().m_orientation.theta), 4);
             m_TaskOutput.finished();
             break;
         case freeRunning:

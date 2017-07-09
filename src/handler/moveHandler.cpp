@@ -5,7 +5,7 @@ MoveHandler::MoveHandler(KinematicControl& kinematicControl, uint32_t interval) 
     m_interval(interval),
     m_countMoves(0),
     m_actualMove(0),
-    m_speed(0.0f),
+    m_speed(0.f),
     m_isBlocked(false),
     m_isFinished(false)
 {
