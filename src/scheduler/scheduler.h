@@ -12,24 +12,24 @@
 
 enum commands
 {
-	xPlus = 'q',
-	xMinus = 'e',
-	yPlus = 'a',
-	yMinus = 'd',
-	zPlus = 'w',
-	zMinus = 's',
-	psiPlus = 'u',
-	psiMinus = 'o',
-	thetaPlus = 'i',
-	thetaMinus = 'k',
-	phiPlus = 'j',
-	phiMinus = 'l',
-	speedPlus = 't',
-	speedMinus = 'g',
-	swingLengthPlus = 'y',
-	swingLengthMinus = 'x',
-	turnDistancePlus = 'f',
-	turnDistanceMinus = 'h',
+    xPlus = 'q',
+    xMinus = 'e',
+    yPlus = 'a',
+    yMinus = 'd',
+    zPlus = 'w',
+    zMinus = 's',
+    psiPlus = 'u',
+    psiMinus = 'o',
+    thetaPlus = 'i',
+    thetaMinus = 'k',
+    phiPlus = 'j',
+    phiMinus = 'l',
+    speedPlus = 't',
+    speedMinus = 'g',
+    swingLengthPlus = 'y',
+    swingLengthMinus = 'x',
+    turnDistancePlus = 'f',
+    turnDistanceMinus = 'h',
     tripod = 'c',
     wave = 'v',
     start = 'b',
@@ -50,40 +50,40 @@ enum taskPriority
 class Scheduler
 {
 public:
-	Scheduler();
+    Scheduler();
 
-	~Scheduler();
+    ~Scheduler();
 
-	void run();
+    void run();
 
 protected:
-	void transition();
+    void transition();
 
     uint8_t taskDecision();
 
-	void getSerialInput();
+    void getSerialInput();
 
     void parseComplexCmd();
 
     float getFloatFromPercentCmd(const uint16_t& i, const float& limit);
 
-	void readCommand();
+    void readCommand();
 
-	static const uint8_t m_bluetoothDelimiter;
-	static const float m_increaseBodyTranslationFactor; ///> m
-	static const float m_increaseBodyRotationFactor; ///> rad
-	static const float m_increaseSpeedFactor; ///> m/s
-	static const float m_increaseSwingLength; ///> percent
-	static const float m_increaseTurnAngle; ///> m
+    static const uint8_t m_bluetoothDelimiter;
+    static const float m_increaseBodyTranslationFactor; ///> m
+    static const float m_increaseBodyRotationFactor; ///> rad
+    static const float m_increaseSpeedFactor; ///> m/s
+    static const float m_increaseSwingLength; ///> percent
+    static const float m_increaseTurnAngle; ///> m
 
     KinematicControl m_kinControl;
     GaitHandler m_gaitHandler;
     BodyHandler m_bodyHandler;
     InterpolationHandler m_interpolationHandler;
 
-	STRING m_readData;
+    STRING m_readData;
     uint8_t m_crc;
-	float m_turnAngle; // %
+    float m_turnAngle; // %
 
     Task m_taskServo;
     Task m_taskInput;

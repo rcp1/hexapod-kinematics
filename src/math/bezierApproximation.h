@@ -7,16 +7,16 @@ template<typename t_type, uint8_t t_countAnchors>
 class BezierApproximation
 {
 public:
-	BezierApproximation();
-	virtual ~BezierApproximation();
+    BezierApproximation();
+    virtual ~BezierApproximation();
     BezierApproximation<t_type, t_countAnchors>& operator=(const BezierApproximation<t_type, t_countAnchors>& source);
     t_type getPos(float actualTime) const;
-	void addAnchor(const Vector3d& newAnchor);
-	void addAnchor(const Orientation3d& newAnchor);
+    void addAnchor(const Vector3d& newAnchor);
+    void addAnchor(const Orientation3d& newAnchor);
     void reset();
 private:
     t_type m_anchorPoints_ast[t_countAnchors];
-	uint8_t m_countUsedAnchors;
+    uint8_t m_countUsedAnchors;
 };
 
 template<typename t_type, uint8_t t_countAnchors>

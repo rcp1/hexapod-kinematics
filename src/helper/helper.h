@@ -7,9 +7,9 @@
 template<typename t_type>
 inline void swap(t_type& first, t_type& second)
 {
-	t_type temp(first);
-	first = second;
-	second = temp;
+    t_type temp(first);
+    first = second;
+    second = temp;
 }
 
 template<typename t_type>
@@ -17,21 +17,21 @@ inline void swap(t_type* first, t_type* second, uint16_t size)
 {
     for (uint16_t i = 0; i < size; ++i)
     {
-    	swap<t_type>(first[i], second[i]);
+        swap<t_type>(first[i], second[i]);
     }
 }
 
 template<typename t_type>
 inline t_type minimum(t_type val1, t_type val2)
 {
-	return ((val1 <= val2) ? val1 : val2);
+    return ((val1 <= val2) ? val1 : val2);
 }
 
 template<typename t_type>
 inline
 uint16_t maximum(t_type val1, t_type val2)
 {
-	return ((val1 >= val2) ? val1 : val2);
+    return ((val1 >= val2) ? val1 : val2);
 }
 
 inline
@@ -51,7 +51,7 @@ void shiftArrayLeft(TYPE* array_t, uint8_t size)
 template<typename t_type>
 void shiftArrayRight(t_type* array_t, uint8_t size)
 {
-	t_type lastElement = array_t[size - 1];
+    t_type lastElement = array_t[size - 1];
     memmove(&array_t[1], &array_t[0], size - 1);
     array_t[0] = lastElement;
 }

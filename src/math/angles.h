@@ -10,13 +10,13 @@ const float radToDegFactor = 1.f / degToRadFactor; ///> 180 / pi
 inline
 float deg2rad(const float degVal)
 {
-	return (degToRadFactor * degVal);
+    return (degToRadFactor * degVal);
 }
 
 inline
 float rad2deg(const float radVal)
 {
-	return (radToDegFactor * radVal);
+    return (radToDegFactor * radVal);
 }
 
 }

@@ -9,14 +9,14 @@ namespace math
 inline
 float power(float value, uint8_t power)
 {
-	float result = value;
+    float result = value;
 
-	for (uint8_t i = 0; i <= (power - (uint8_t)(2)); ++i)
-	{
-		result *= value;
-	}
+    for (uint8_t i = 0; i <= (power - (uint8_t)(2)); ++i)
+    {
+        result *= value;
+    }
 
-	return result;
+    return result;
 }
 
 }
