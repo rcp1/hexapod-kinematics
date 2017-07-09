@@ -10,11 +10,11 @@ const float Scheduler::m_increaseSwingLength = (float)0.05f;
 const float Scheduler::m_increaseTurnAngle = (float)0.05f;
 
 Scheduler::Scheduler() :
-	m_kinControl(m_interpolationHandler, m_gaitHandler, m_bodyHandler),
+    m_kinControl(m_interpolationHandler, m_gaitHandler, m_bodyHandler),
     m_gaitHandler(m_kinControl, tasks::servoInterval, gaits::type::tripod),
     m_bodyHandler(m_kinControl, tasks::servoInterval),
     m_crc(0),
-	m_turnAngle(0.f),
+    m_turnAngle(0.f),
     m_taskServo(tasks::servoInterval),
     m_taskInput(tasks::inputInterval),
     m_TaskOutput(tasks::outputInterval)
@@ -34,13 +34,13 @@ void Scheduler::run()
 {
     // calculate first position
     m_kinControl.calcKin();
-	this->transition();
+    this->transition();
 }
 
 void Scheduler::transition()
 {
-	while (1)
-	{
+    while (1)
+    {
         switch (taskDecision())
         {
         case taskServo:
@@ -76,7 +76,7 @@ void Scheduler::transition()
         case freeRunning:
             break;
         }
-	}
+    }
 }
 
 uint8_t Scheduler::taskDecision()
@@ -101,80 +101,80 @@ uint8_t Scheduler::taskDecision()
 
 void Scheduler::getSerialInput()
 {
-	readCommand();
+    readCommand();
 
     char actState_uc = m_readData[0];
     Pose3d bodyVector = m_kinControl.getBodyPose();
-	switch ((enum commands)actState_uc)
-	{
-	case xPlus:
+    switch ((enum commands)actState_uc)
+    {
+    case xPlus:
         bodyVector.m_position.x += m_increaseBodyTranslationFactor;
         m_kinControl.setNewBodyPose(bodyVector);
-		break;
-	case xMinus:
+        break;
+    case xMinus:
         bodyVector.m_position.x -= m_increaseBodyTranslationFactor;
         m_kinControl.setNewBodyPose(bodyVector);
-		break;
-	case yPlus:
+        break;
+    case yPlus:
         bodyVector.m_position.y += m_increaseBodyTranslationFactor;
         m_kinControl.setNewBodyPose(bodyVector);
-		break;
-	case yMinus:
+        break;
+    case yMinus:
         bodyVector.m_position.y -= m_increaseBodyTranslationFactor;
         m_kinControl.setNewBodyPose(bodyVector);
-		break;
-	case zPlus:
+        break;
+    case zPlus:
         bodyVector.m_position.z += m_increaseBodyTranslationFactor;
         m_kinControl.setNewBodyPose(bodyVector);
-		break;
-	case zMinus:
+        break;
+    case zMinus:
         bodyVector.m_position.z -= m_increaseBodyTranslationFactor;
         m_kinControl.setNewBodyPose(bodyVector);
-		break;
-	case psiPlus:
+        break;
+    case psiPlus:
         bodyVector.m_orientation.psi += m_increaseBodyRotationFactor;
         m_kinControl.setNewBodyPose(bodyVector);
-		break;
-	case psiMinus:
+        break;
+    case psiMinus:
         bodyVector.m_orientation.psi -= m_increaseBodyRotationFactor;
         m_kinControl.setNewBodyPose(bodyVector);
-		break;
-	case thetaPlus:
+        break;
+    case thetaPlus:
         bodyVector.m_orientation.theta += m_increaseBodyRotationFactor;
         m_kinControl.setNewBodyPose(bodyVector);
-		break;
-	case thetaMinus:
+        break;
+    case thetaMinus:
         bodyVector.m_orientation.theta -= m_increaseBodyRotationFactor;
         m_kinControl.setNewBodyPose(bodyVector);
-		break;
-	case phiPlus:
+        break;
+    case phiPlus:
         bodyVector.m_orientation.phi += m_increaseBodyRotationFactor;
         m_kinControl.setNewBodyPose(bodyVector);
-		break;
-	case phiMinus:
+        break;
+    case phiMinus:
         bodyVector.m_orientation.phi -= m_increaseBodyRotationFactor;
         m_kinControl.setNewBodyPose(bodyVector);
-		break;
-	case speedPlus:
+        break;
+    case speedPlus:
         m_gaitHandler.setSpeed(m_gaitHandler.getSpeed() + m_increaseSpeedFactor);
-		break;
-	case speedMinus:
-		m_gaitHandler.setSpeed(m_gaitHandler.getSpeed() - m_increaseSpeedFactor);
-		break;
-	case swingLengthPlus:
+        break;
+    case speedMinus:
+        m_gaitHandler.setSpeed(m_gaitHandler.getSpeed() - m_increaseSpeedFactor);
+        break;
+    case swingLengthPlus:
         m_kinControl.setSwingLength(minimum(m_kinControl.getSwingLength() + m_increaseSwingLength, 1.f));
-		break;
-	case swingLengthMinus:
+        break;
+    case swingLengthMinus:
         m_kinControl.setSwingLength(maximum(m_kinControl.getSwingLength() - m_increaseSwingLength, 0.f));
-		break;
-	case turnDistancePlus:
-		m_turnAngle = minimum(m_turnAngle + m_increaseTurnAngle, 1.f);
+        break;
+    case turnDistancePlus:
+        m_turnAngle = minimum(m_turnAngle + m_increaseTurnAngle, 1.f);
         m_kinControl.setTurnAngle(m_turnAngle);
-		break;
-	case turnDistanceMinus:
-		m_turnAngle = maximum(m_turnAngle - m_increaseTurnAngle, -1.f);
+        break;
+    case turnDistanceMinus:
+        m_turnAngle = maximum(m_turnAngle - m_increaseTurnAngle, -1.f);
         m_kinControl.setTurnAngle(m_turnAngle);
-		break;
+        break;
     case start:
         m_gaitHandler.setGait(gaits::type::target);
         m_gaitHandler.setSpeed(speeds::gaits::target);
@@ -206,7 +206,7 @@ void Scheduler::getSerialInput()
         break;
     default:
         break;
-	}
+    }
 }
 
 void Scheduler::parseComplexCmd()
@@ -244,7 +244,7 @@ float Scheduler::getFloatFromPercentCmd(const uint16_t& i, const float& limit)
 #ifdef ARDUINO_PLATFORM
 void Scheduler::readCommand()
 {
-	m_readData = "";
+    m_readData = "";
 
     if (Serial1.available() >= 11)
     {

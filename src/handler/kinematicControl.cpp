@@ -4,29 +4,29 @@
 #include "mathConstants.h"
 
 KinematicControl::KinematicControl(InterpolationHandler& interpolationHandler, GaitHandler& gaitHandler_pst, BodyHandler& bodyHandler_pst) :
-	m_interpolation(interpolationHandler),
+    m_interpolation(interpolationHandler),
     m_gait(gaitHandler_pst),
     m_body_pst(bodyHandler_pst),
     m_arcAngle(0.0f),
     m_swingLength(1.0f),
     m_turnDistance(0.0f)
 {
-	m_trafoKin3AxisLeg.forward(Vector3d(msrh01::anglesInit[msrh01::coxaIndex],
+    m_trafoKin3AxisLeg.forward(Vector3d(msrh01::anglesInit[msrh01::coxaIndex],
                                               msrh01::anglesInit[msrh01::femurIndex],
                                               msrh01::anglesInit[msrh01::tibiaIndex]), m_BCSTCPInit);
-	initLegServoVectors();
+    initLegServoVectors();
     setTurnAngle(0.0f);
 }
 
 void KinematicControl::initLegServoVectors()
 {
-	for (uint8_t i = 0; i < msrh01::legs; ++i)
-	{
-		m_legServoVectors_ast[i].setLegIndex(i);
+    for (uint8_t i = 0; i < msrh01::legs; ++i)
+    {
+        m_legServoVectors_ast[i].setLegIndex(i);
         m_legServoVectors_ast[i].setMoveTime(tasks::servoInterval);
-		m_legServoVectors_ast[i].init();
+        m_legServoVectors_ast[i].init();
         m_BCSTCPActualGait[i] = m_BCSTCPInit;
-	}
+    }
 }
 
 KinematicControl::~KinematicControl()
@@ -43,10 +43,10 @@ void KinematicControl::setServoMoveTime(uint16_t moveTime)
 
 void KinematicControl::setTurnAngle(const float& turnAngle)
 {
-	m_turnDistance = calcTurnDistance(turnAngle);
+    m_turnDistance = calcTurnDistance(turnAngle);
 
-	const float maxRadiusOfTurn = calcMaxTurnRadiusOfLegs(m_turnDistance);
-	m_arcAngle = calcArcAngle(maxRadiusOfTurn);
+    const float maxRadiusOfTurn = calcMaxTurnRadiusOfLegs(m_turnDistance);
+    m_arcAngle = calcArcAngle(maxRadiusOfTurn);
 }
 
 void KinematicControl::setSwingLength(const float& swingLength)
@@ -103,8 +103,8 @@ void KinematicControl::calcKin()
     Vector3d BCSTCPBezier;
     Vector3d MCSBody;
 
-	for (uint8_t i = 0; i < msrh01::legs; ++i)
-	{
+    for (uint8_t i = 0; i < msrh01::legs; ++i)
+    {
         if (m_gait.getLegState(i) != gaits::state::stop)
         {
             // get actual bezier TCP in BCS of middle right leg
@@ -119,7 +119,7 @@ void KinematicControl::calcKin()
         ACSTCP = calcKinLeg(BCSTCPBezier, m_MCSBodyPose, i);
         // set new ACS TCP
         m_legServoVectors_ast[i].setTrafoVector(ACSTCP);
-	}
+    }
 }
 
 Vector3d KinematicControl::calcKinLeg(const Vector3d& BCSTCPStart, const Pose3d& MCSBody, const uint8_t legIndex)
@@ -151,7 +151,7 @@ Vector3d KinematicControl::calcKinLeg(const Vector3d& BCSTCPStart, const Pose3d&
     trafoStatus result = m_trafoKin3AxisLeg.backward(BCSTCPBezierAndBody.m_position, ACSTCP);
     if (result != trafoOk)
     {
-    	Serial.print("Trafo Error: "); Serial.println(result);
+        Serial.print("Trafo Error: "); Serial.println(result);
         ACSTCP = m_legServoVectors_ast[legIndex].getTrafoVector();
     }
 
@@ -181,72 +181,72 @@ Vector3d KinematicControl::calcYawedCurve(const Vector3d &MCSTCPInit, const Vect
 
 void KinematicControl::setServos()
 {
-	for (uint8_t i = 0; i < msrh01::legs; ++i)
-	{
-		m_legServoVectors_ast[i].setServos();
-	}
+    for (uint8_t i = 0; i < msrh01::legs; ++i)
+    {
+        m_legServoVectors_ast[i].setServos();
+    }
 }
 
 float KinematicControl::calcTurnDistance(const float& turnAngle)
 {
-	float turnDistance = 0.0f;
+    float turnDistance = 0.0f;
 
-	if ((float)fabs((turnAngle + 1.0f)) < math::epsilonFloat)
-	{
-		turnDistance = (float)tanf((0.0f - math::epsilonFloat) * M_PI_2);
-	}
-	else if ((float)fabs((turnAngle - 1.0f)) < math::epsilonFloat)
-	{
-		turnDistance = (float)tanf((0.0f + math::epsilonFloat) * M_PI_2);
-	}
-	else if ((float)abs(turnAngle) <= toleranceTurn)
-	{
-		turnDistance = (float)tanf((1.0f - toleranceTurn) * M_PI_2);
-	}
-	else if ((float)fabs(turnAngle) > toleranceTurn)
-	{
-		turnDistance = (float)tanf((1.0f - turnAngle) * M_PI_2);
-	}
+    if ((float)fabs((turnAngle + 1.0f)) < math::epsilonFloat)
+    {
+        turnDistance = (float)tanf((0.0f - math::epsilonFloat) * M_PI_2);
+    }
+    else if ((float)fabs((turnAngle - 1.0f)) < math::epsilonFloat)
+    {
+        turnDistance = (float)tanf((0.0f + math::epsilonFloat) * M_PI_2);
+    }
+    else if ((float)abs(turnAngle) <= toleranceTurn)
+    {
+        turnDistance = (float)tanf((1.0f - toleranceTurn) * M_PI_2);
+    }
+    else if ((float)fabs(turnAngle) > toleranceTurn)
+    {
+        turnDistance = (float)tanf((1.0f - turnAngle) * M_PI_2);
+    }
 
-	return turnDistance;
+    return turnDistance;
 }
 
 float KinematicControl::calcMaxTurnRadiusOfLegs(const float &turnDistance)
 {
-	float maxRadiusOfTurn = 0.0f;
-	Vector3d MCSInit;
+    float maxRadiusOfTurn = 0.0f;
+    Vector3d MCSInit;
 
-	for (uint8_t i = 0; i < msrh01::legs; ++i)
-	{
-		m_trafoCoordBodyToHip.backward(m_BCSTCPInit, MCSInit, i);
-		MCSInit.y -= turnDistance;
-	    // cart to polar
-	    float r = MCSInit.length();
-		if (r >= maxRadiusOfTurn)
-		{
-			maxRadiusOfTurn = r;
-		}
-	}
-	if (turnDistance < 0.0f)
-		maxRadiusOfTurn = -maxRadiusOfTurn;
+    for (uint8_t i = 0; i < msrh01::legs; ++i)
+    {
+        m_trafoCoordBodyToHip.backward(m_BCSTCPInit, MCSInit, i);
+        MCSInit.y -= turnDistance;
+        // cart to polar
+        float r = MCSInit.length();
+        if (r >= maxRadiusOfTurn)
+        {
+            maxRadiusOfTurn = r;
+        }
+    }
+    if (turnDistance < 0.0f)
+        maxRadiusOfTurn = -maxRadiusOfTurn;
 
-	return maxRadiusOfTurn;
+    return maxRadiusOfTurn;
 }
 
 float KinematicControl::calcArcAngle(const float &radiusOfTurn)
 {
-	return (m_swingLength * msrh01::stepLengthMaximum) / radiusOfTurn;
+    return (m_swingLength * msrh01::stepLengthMaximum) / radiusOfTurn;
 }
 
 float KinematicControl::calcSwingTime(const float& speed) const
 {
-	if ((float)fabs(speed) > math::epsilonFloat)
-	{
+    if ((float)fabs(speed) > math::epsilonFloat)
+    {
         // m_swing [m] / (v_act [m/s] / 1000) [m/ms]
-		return maximum(((m_swingLength * msrh01::stepLengthMaximum) / ((float)fabs(speed) / 1000.0f)), 300.0f);
-	}
-	else
-	{
-		return 65535;
-	}
+        return maximum(((m_swingLength * msrh01::stepLengthMaximum) / ((float)fabs(speed) / 1000.0f)), 300.0f);
+    }
+    else
+    {
+        return 65535;
+    }
 }

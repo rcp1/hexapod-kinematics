@@ -1,13 +1,13 @@
 #include "moveHandler.h"
 
 MoveHandler::MoveHandler(KinematicControl& kinematicControl, uint32_t interval) :
-	m_kinematicControl(kinematicControl),
+    m_kinematicControl(kinematicControl),
     m_interval(interval),
     m_countMoves(0),
     m_actualMove(0),
     m_speed(0.0f),
     m_isBlocked(false),
-	m_isFinished(false)
+    m_isFinished(false)
 {
 }
 

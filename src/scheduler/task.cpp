@@ -3,7 +3,7 @@
 bool Task::taskInterrupt::m_isTimerUsed[] = { false };
 
 Task::Task(uint32_t interval) :
-	m_nestedTaskInterrupt(this, interval)
+    m_nestedTaskInterrupt(this, interval)
 {
 }
 

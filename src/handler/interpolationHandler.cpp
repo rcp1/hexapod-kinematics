@@ -54,13 +54,13 @@ void InterpolationHandler::calcInterpolationToTarget(const uint8_t& legIndex, co
 
 void InterpolationHandler::calcInterpolationBody(const Pose3d& MCSFrom, const Pose3d& MCSTarget)
 {
-	m_bezierBodyPos.reset();
-	m_bezierBodyPos.addAnchor(MCSFrom.m_position);
-	m_bezierBodyPos.addAnchor(MCSTarget.m_position);
+    m_bezierBodyPos.reset();
+    m_bezierBodyPos.addAnchor(MCSFrom.m_position);
+    m_bezierBodyPos.addAnchor(MCSTarget.m_position);
 
-	m_bezierBodyOri.reset();
-	m_bezierBodyOri.addAnchor(MCSFrom.m_orientation);
-	m_bezierBodyOri.addAnchor(MCSTarget.m_orientation);
+    m_bezierBodyOri.reset();
+    m_bezierBodyOri.addAnchor(MCSFrom.m_orientation);
+    m_bezierBodyOri.addAnchor(MCSTarget.m_orientation);
 }
 
 Vector3d InterpolationHandler::getGaitInterpolation(const uint8_t& state, const uint8_t& legIndex, const float& time)

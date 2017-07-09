@@ -2,7 +2,7 @@
 #include "mathConstants.h"
 
 GaitHandler::GaitHandler(KinematicControl& kinematicControl, uint32_t interval, uint8_t gaitNr) :
-	MoveHandler(kinematicControl, interval),
+    MoveHandler(kinematicControl, interval),
     m_gaitNrAfterTarget(0)
 {
     setGait(gaitNr);

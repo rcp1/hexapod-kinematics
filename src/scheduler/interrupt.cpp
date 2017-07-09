@@ -5,7 +5,7 @@ Interrupt *Interrupt::m_owners[] = { 0 };
 void Interrupt::handler1()
 {
     if(m_owners[0])
-	    m_owners[0]->serviceRoutine();
+        m_owners[0]->serviceRoutine();
 }
 void Interrupt::handler2()
 {
@@ -25,5 +25,5 @@ void Interrupt::handler4()
 
 void Interrupt::record(uint8_t timerNumber, Interrupt *i)
 {
-	m_owners[timerNumber] = i;
+    m_owners[timerNumber] = i;
 }
