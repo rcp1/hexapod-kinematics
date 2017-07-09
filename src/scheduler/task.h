@@ -32,11 +32,16 @@ private:
             initInterruptTimer(interval);
             record(m_timerNumber, this);
         }
-        Task* m_ownerTask;
+
         void serviceRoutine();
+
         void initInterruptTimer(uint32_t interval);
-    private:
+
+        Task* m_ownerTask;
+
+    protected:
         uint8_t m_timerNumber;
+
         static bool m_isTimerUsed[4];
 
     }m_nestedTaskInterrupt;
