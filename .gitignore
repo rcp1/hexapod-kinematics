@@ -1,5 +1,9 @@
+# PlatformIO
 .pioenvs
 .piolibdeps
 .clang_complete
 .gcc-flags.json
+
+# Eclipse
 .cproject
+.project
