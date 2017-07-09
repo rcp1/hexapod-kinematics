@@ -7,3 +7,4 @@
 # Eclipse
 .cproject
 .project
+.settings/
