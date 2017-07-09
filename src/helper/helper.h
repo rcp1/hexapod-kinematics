@@ -5,7 +5,8 @@
 #include <stdint.h>
 
 template<typename t_type>
-inline void swap(t_type& first, t_type& second)
+inline
+void swap(t_type& first, t_type& second)
 {
     t_type temp(first);
     first = second;
@@ -13,7 +14,8 @@ inline void swap(t_type& first, t_type& second)
 }
 
 template<typename t_type>
-inline void swap(t_type* first, t_type* second, uint16_t size)
+inline
+void swap(t_type* first, t_type* second, uint16_t size)
 {
     for (uint16_t i = 0; i < size; ++i)
     {
@@ -22,20 +24,22 @@ inline void swap(t_type* first, t_type* second, uint16_t size)
 }
 
 template<typename t_type>
-inline t_type minimum(t_type val1, t_type val2)
+inline
+t_type minimum(t_type val1, t_type val2)
 {
     return ((val1 <= val2) ? val1 : val2);
 }
 
 template<typename t_type>
 inline
-uint16_t maximum(t_type val1, t_type val2)
+t_type maximum(t_type val1, t_type val2)
 {
     return ((val1 >= val2) ? val1 : val2);
 }
 
+template<typename t_type>
 inline
-float limit(float lower, float value, float upper)
+float limit(t_type lower, t_type value, t_type upper)
 {
     return maximum(minimum(value, upper), lower);
 }
@@ -54,22 +58,6 @@ void shiftArrayRight(t_type* array_t, uint8_t size)
     t_type lastElement = array_t[size - 1];
     memmove(&array_t[1], &array_t[0], size - 1);
     array_t[0] = lastElement;
-}
-
-inline
-int16_t findInString(const int8_t& needle, const String& haystack)
-{
-    int16_t foundpos_ss = -1;
-
-    for (uint16_t i = 0; i <= haystack.length(); ++i)
-    {
-        if (haystack[i] == needle)
-        {
-            foundpos_ss = i;
-        }
-    }
-
-    return foundpos_ss;
 }
 
 #endif // HELPER_H

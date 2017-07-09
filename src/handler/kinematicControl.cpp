@@ -12,8 +12,8 @@ KinematicControl::KinematicControl(InterpolationHandler& interpolationHandler, G
     m_turnDistance(0.0f)
 {
     m_trafoKin3AxisLeg.forward(Vector3d(msrh01::anglesInit[msrh01::coxaIndex],
-                                              msrh01::anglesInit[msrh01::femurIndex],
-                                              msrh01::anglesInit[msrh01::tibiaIndex]), m_BCSTCPInit);
+                                        msrh01::anglesInit[msrh01::femurIndex],
+                                        msrh01::anglesInit[msrh01::tibiaIndex]), m_BCSTCPInit);
     initLegServoVectors();
     setTurnAngle(0.0f);
 }
@@ -158,9 +158,9 @@ Vector3d KinematicControl::calcKinLeg(const Vector3d& BCSTCPStart, const Pose3d&
     return ACSTCP;
 }
 
-Vector3d KinematicControl::calcYawedCurve(const Vector3d &MCSTCPInit, const Vector3d &BCSTCPBezier) const
+Vector3d KinematicControl::calcYawedCurve(const Vector3d& MCSTCPInit, const Vector3d& BCSTCPBezier) const
 {
-    Vector3d MCSTCPnew;;
+    Vector3d MCSTCPnew;
     // calculated yawed Bezier curve with arc angle and lateral turn distance
     MCSTCPnew = MCSTCPInit;
     MCSTCPnew.y -= m_turnDistance;
@@ -169,6 +169,7 @@ Vector3d KinematicControl::calcYawedCurve(const Vector3d &MCSTCPInit, const Vect
     float r = MCSTCPnew.length();
     float phi = atan2f(MCSTCPnew.y, MCSTCPnew.x);
     phi += BCSTCPBezier.x * m_arcAngle;
+
     // pol to cart
     MCSTCPnew.x = r * cosf(phi);
     MCSTCPnew.y = r * sinf(phi);
@@ -189,23 +190,23 @@ void KinematicControl::setServos()
 
 float KinematicControl::calcTurnDistance(const float& turnAngle)
 {
-    float turnDistance = 0.0f;
+    float turnDistance = 0.f;
 
-    if ((float)fabs((turnAngle + 1.0f)) < math::epsilonFloat)
+    if (fabs((turnAngle + 1.f)) < math::epsilonFloat)
     {
-        turnDistance = (float)tanf((0.0f - math::epsilonFloat) * M_PI_2);
+        turnDistance = tanf((0.f - math::epsilonFloat) * M_PI_2);
     }
-    else if ((float)fabs((turnAngle - 1.0f)) < math::epsilonFloat)
+    else if (fabs((turnAngle - 1.f)) < math::epsilonFloat)
     {
-        turnDistance = (float)tanf((0.0f + math::epsilonFloat) * M_PI_2);
+        turnDistance = tanf((0.f + math::epsilonFloat) * M_PI_2);
     }
-    else if ((float)abs(turnAngle) <= toleranceTurn)
+    else if (abs(turnAngle) <= toleranceTurn)
     {
-        turnDistance = (float)tanf((1.0f - toleranceTurn) * M_PI_2);
+        turnDistance = tanf((1.f - toleranceTurn) * M_PI_2);
     }
-    else if ((float)fabs(turnAngle) > toleranceTurn)
+    else if (fabs(turnAngle) > toleranceTurn)
     {
-        turnDistance = (float)tanf((1.0f - turnAngle) * M_PI_2);
+        turnDistance = tanf((1.f - turnAngle) * M_PI_2);
     }
 
     return turnDistance;
