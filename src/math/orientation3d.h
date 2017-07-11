@@ -27,6 +27,8 @@ public:
 
     Orientation3d operator-(const Orientation3d& source) const;
 
+    Orientation3d operator-() const;
+
     Orientation3d& operator-=(const Orientation3d& source);
 
     Orientation3d operator/(const float scalar) const;
@@ -86,6 +88,19 @@ Orientation3d Orientation3d::operator-(const Orientation3d& source) const
     for (uint8_t i = 0; i < s_dimension; ++i)
     {
         temp.m_data[i] -= source.m_data[i];
+    }
+
+    return temp;
+}
+
+inline
+Orientation3d Orientation3d::operator-() const
+{
+    Orientation3d temp;
+
+    for (uint8_t i = 0; i < s_dimension; ++i)
+    {
+        temp.m_data[i] = -this->m_data[i];
     }
 
     return temp;
