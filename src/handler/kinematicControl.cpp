@@ -161,8 +161,9 @@ Vector3d KinematicControl::calcKinLeg(const Vector3d& BCSTCPStart, const Pose3d&
 Vector3d KinematicControl::calcYawedCurve(const Vector3d& MCSTCPInit, const Vector3d& BCSTCPBezier) const
 {
     Vector3d MCSTCPnew;
-    // calculated yawed Bezier curve with arc angle and lateral turn distance
     MCSTCPnew = MCSTCPInit;
+
+    // translate to center of rotation
     MCSTCPnew.y -= m_turnDistance;
 
     // cart to polar
@@ -173,6 +174,7 @@ Vector3d KinematicControl::calcYawedCurve(const Vector3d& MCSTCPInit, const Vect
     MCSTCPnew.x = r * cosf(phi);
     MCSTCPnew.y = r * sinf(phi);
 
+    // translate back to center of robot
     MCSTCPnew.y += m_turnDistance;
     MCSTCPnew.z = MCSTCPInit.z + m_swingLength * msrh01::stepLengthMaximum * BCSTCPBezier.z;
 

@@ -24,12 +24,10 @@ trafoStatus TrafoCoordBodyToHip::backward(const Vector3d& input, Vector3d& outpu
 {
     trafoStatus result = trafoOk;
     const Vector3d toHip = this->createVector(legIndex);
-    Vector3d rotatedInput;
 
-    rotatedInput = math::rotateZ(input, -getPhi0(legIndex));
+    Vector3d rotatedInput = math::rotateZ(input, -getPhi0(legIndex));
 
     output = rotatedInput + toHip;
-
 
     return result;
 }
