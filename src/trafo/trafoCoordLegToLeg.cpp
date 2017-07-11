@@ -1,6 +1,6 @@
 #include "trafoCoordLegToLeg.h"
 
-TrafoCoordLegToLeg::TrafoCoordLegToLeg() : m_trafoCoordReflectionX('x')
+TrafoCoordLegToLeg::TrafoCoordLegToLeg()
 {
 }
 
@@ -16,9 +16,8 @@ trafoStatus TrafoCoordLegToLeg::forward(const Vector3d& input, Vector3d& output,
 
     switch ((legIndexTo + 1) % 2)
     {
-    case 0: // left side is reflected at x-Axis
-        m_trafoCoordReflectionX.forward(input, output);
-        output += toHip;
+    case 0: // left side is mirrored at x-Axis
+        output = Vector3d(input.x, -input.y, input.z) + toHip;
         break;
     case 1:
         output = input + toHip;

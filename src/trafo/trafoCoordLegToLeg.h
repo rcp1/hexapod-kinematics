@@ -2,7 +2,6 @@
 #define TRAFOCOORDLEGTOLEG_H
 
 #include "trafoBase.h"
-#include "trafoCoordReflection.h"
 #include "defines.h"
 
 class TrafoCoordLegToLeg : public TrafoBase
@@ -32,8 +31,6 @@ protected:
     float getPhi0(uint8_t legIndex) const;
 
     Vector3d createVector(uint8_t legIndex) const;
-
-    TrafoCoordReflection m_trafoCoordReflectionX;
 };
 
 inline

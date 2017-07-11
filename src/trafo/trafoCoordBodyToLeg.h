@@ -2,10 +2,9 @@
 #define TRAFOBODYTOLEG_H
 
 #include "pose3d.h"
-#include <trafoBase.h>
-#include <trafoKin3AxisLeg.h>
-#include <trafoCoordBodyToHip.h>
-#include "trafoCoordRotation.h"
+#include "trafoBase.h"
+#include "trafoKin3AxisLeg.h"
+#include "trafoCoordBodyToHip.h"
 
 class TrafoCoordBodyToLeg : public TrafoBase
 {

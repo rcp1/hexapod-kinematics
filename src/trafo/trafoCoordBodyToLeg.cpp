@@ -1,4 +1,5 @@
 #include "trafoCoordBodyToLeg.h"
+#include "rotate.h"
 
 TrafoCoordBodyToLeg::TrafoCoordBodyToLeg()
 {
@@ -11,7 +12,6 @@ TrafoCoordBodyToLeg::~TrafoCoordBodyToLeg()
 
 trafoStatus TrafoCoordBodyToLeg::forward(const Pose3d& desiredMCSBody, const Vector3d& actBCSTCP, Pose3d& output, uint8_t legIndex) const
 {
-    TrafoRotation trafoRotation;
     trafoStatus result = trafoOk;
 
     const Vector3d initBodyMCS(0.0f, 0.0f, 0.0f);
@@ -29,15 +29,8 @@ trafoStatus TrafoCoordBodyToLeg::forward(const Pose3d& desiredMCSBody, const Vec
     // Get new position vector of TCP in MCS
     output.m_position = initMCS + diffBodyMCS;
 
-    // Yaw
-    trafoRotation.setAxisAndAngle('z', desiredMCSBody.m_orientation.psi);
-    result = trafoRotation.forward(output.m_position, output.m_position);
-    // Pitch
-    trafoRotation.setAxisAndAngle('y', desiredMCSBody.m_orientation.theta);
-    result = trafoRotation.forward(output.m_position, output.m_position);
-    // Roll
-    trafoRotation.setAxisAndAngle('x', desiredMCSBody.m_orientation.phi);
-    result = trafoRotation.forward(output.m_position, output.m_position);
+    // Rotate to desired orientation
+    output.m_position = math::rotateToOrientation(output.m_position, desiredMCSBody.m_orientation);
 
     // Get new position vector of TCP in BCS
     result = m_trafoCoordBodyToHip.forward(output.m_position, output.m_position, legIndex);
@@ -51,7 +44,6 @@ trafoStatus TrafoCoordBodyToLeg::forward(const Pose3d& desiredMCSBody, const Vec
 
 trafoStatus TrafoCoordBodyToLeg::backward(const Pose3d& input, Pose3d& output, uint8_t legIndex) const
 {
-    TrafoRotation trafoCoordRotation;
     trafoStatus result = trafoOk;
 
     const Vector3d initACS(0.0f, 0.0f, 0.0f);
@@ -65,15 +57,8 @@ trafoStatus TrafoCoordBodyToLeg::backward(const Pose3d& input, Pose3d& output, u
     if (result)
         return result;
 
-    // Roll
-    trafoCoordRotation.setAxisAndAngle('x', input.m_orientation.phi);
-    result = trafoCoordRotation.backward(newBCS, newBCS);
-    // Pitch
-    trafoCoordRotation.setAxisAndAngle('y', input.m_orientation.theta);
-    result = trafoCoordRotation.backward(newBCS, newBCS);
-    // Yaw
-    trafoCoordRotation.setAxisAndAngle('z', input.m_orientation.psi);
-    result = trafoCoordRotation.backward(newBCS, newBCS);
+    // Rotate to desired orientation
+    newBCS = math::rotateToOrientation(newBCS, -input.m_orientation);
 
     // Get new position vector of TCP in BCS
     result = m_trafoCoordBodyToHip.forward(newBCS, newBCS, legIndex);

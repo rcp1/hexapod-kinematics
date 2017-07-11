@@ -1,4 +1,5 @@
 #include "trafoCoordBodyToHip.h"
+#include "rotate.h"
 
 TrafoCoordBodyToHip::TrafoCoordBodyToHip()
 {
@@ -13,9 +14,8 @@ trafoStatus TrafoCoordBodyToHip::forward(const Vector3d& input, Vector3d& output
     trafoStatus result = trafoOk;
     const Vector3d toHip = this->createVector(legIndex);
     const Vector3d translatedInput = input - toHip;
-    const TrafoRotation trafoRotation('z', getPhi0(legIndex));
 
-    trafoRotation.forward(translatedInput, output);
+    output = math::rotateZ(translatedInput, getPhi0(legIndex));
 
     return result;
 }
@@ -24,10 +24,9 @@ trafoStatus TrafoCoordBodyToHip::backward(const Vector3d& input, Vector3d& outpu
 {
     trafoStatus result = trafoOk;
     const Vector3d toHip = this->createVector(legIndex);
-    const TrafoRotation trafoRotation('z', getPhi0(legIndex));
     Vector3d rotatedInput;
 
-    trafoRotation.backward(input, rotatedInput);
+    rotatedInput = math::rotateZ(input, -getPhi0(legIndex));
 
     output = rotatedInput + toHip;
 

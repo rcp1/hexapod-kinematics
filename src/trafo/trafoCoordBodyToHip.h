@@ -3,8 +3,6 @@
 
 #include "trafoBase.h"
 #include "defines.h"
-#include "trafoCoordRotation.h"
-#include "trafoCoordReflection.h"
 
 class TrafoCoordBodyToHip : public TrafoBase
 {
@@ -33,8 +31,6 @@ protected:
     float getPhi0(uint8_t legIndex) const;
 
     Vector3d createVector(uint8_t legIndex) const;
-
-    TrafoCoordReflection m_trafoCoordReflectionX;
 };
 
 inline
