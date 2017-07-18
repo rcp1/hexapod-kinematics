@@ -16,9 +16,9 @@ typedef String STRING;
 const float degToRadFactor = 0.01745329251994329f; ///> pi / 180
 const float radToDegFactor = 1.f / degToRadFactor; ///> 180 / pi
 
-const uint16_t servoNullOffset = (uint16_t)(1500);
-const uint16_t servoMinimum = (uint16_t)(500);
-const uint16_t servoMaximum = (uint16_t)(2500);
+const uint16_t servoNullOffset = static_cast<uint16_t>(1500);
+const uint16_t servoMinimum = static_cast<uint16_t>(500);
+const uint16_t servoMaximum = static_cast<uint16_t>(2500);
 
 const float radToServoFactor = 1000.f / HALF_PI;
 const float servoToRadFactor = 1.f / radToServoFactor;
@@ -31,9 +31,9 @@ const uint32_t serialBaudrate = 115200UL;
 // #define SD21
 
 #ifdef SD21
-const uint8_t sd21AddressI2C = (uint8_t)0x61; //> shifted by one bit from 0xC2
-const uint8_t sd21RefreshRate = (uint8_t)20; ///> [ms]
-const uint8_t sd21CountRegistersPerLeg = (uint8_t)9;
+const uint8_t sd21AddressI2C = static_cast<uint8_t>0x61; //> shifted by one bit from 0xC2
+const uint8_t sd21RefreshRate = static_cast<uint8_t>20; ///> [ms]
+const uint8_t sd21CountRegistersPerLeg = static_cast<uint8_t>9;
 #endif
 
 #ifdef SSC32
@@ -44,18 +44,18 @@ const float toleranceTurn = 0.005f;
 
 namespace tV
 {
-const uint8_t maxDimensionOrientation = (uint8_t)3;
+const uint8_t maxDimensionOrientation = static_cast<uint8_t>(3);
 const uint8_t maxDimensionPose = Vector3d::s_dimension + maxDimensionOrientation;
 } // namespace tV
 
 namespace msrh01
 {
-const uint8_t legs = (uint8_t)6;
-const uint8_t servosPerLeg = (uint8_t)3;
+const uint8_t legs = static_cast<uint8_t>(6);
+const uint8_t servosPerLeg = static_cast<uint8_t>(3);
 
-const uint8_t tibiaIndex = (uint8_t)0;
-const uint8_t femurIndex = (uint8_t)1;
-const uint8_t coxaIndex = (uint8_t)2;
+const uint8_t tibiaIndex = static_cast<uint8_t>(0);
+const uint8_t femurIndex = static_cast<uint8_t>(1);
+const uint8_t coxaIndex = static_cast<uint8_t>(2);
 
 const float anglesInit[servosPerLeg] = {0.0f, 0.0f, 0.0f};
 
@@ -82,27 +82,27 @@ enum legIndex
 
 namespace dimensions
 {
-const float femur = (float)0.08f; ///> [m]
-const float tibia = (float)0.13f; ///> [m]
-const float coxa = (float)0.0266f; ///> [m]
-const float bodyToCornerLegsX = (float)0.08f; ///> [m]
-const float bodyToCornerLegsY = (float)0.04f; ///> [m]
-const float bodyToMidLegsX = (float)0.f; ///> [m]
-const float bodyToMidLegsY = (float)0.06f; ///> [m]
+const float femur = 0.08f; ///> [m]
+const float tibia = 0.13f; ///> [m]
+const float coxa = 0.0266f; ///> [m]
+const float bodyToCornerLegsX = 0.08f; ///> [m]
+const float bodyToCornerLegsY = 0.04f; ///> [m]
+const float bodyToMidLegsX = 0.f; ///> [m]
+const float bodyToMidLegsY = 0.06f; ///> [m]
 } // namespace dimensions
 
 namespace ANGLES
 {
-const float fr = (float)(30 * degToRadFactor);  ///> [rad]
-const float fl = (float)(150 * degToRadFactor); ///> [rad]
-const float mr = (float)(0 * degToRadFactor); ///> [rad]
-const float ml = (float)(180 * degToRadFactor); ///> [rad]
-const float br = (float)(330 * degToRadFactor); ///> [rad]
-const float bl = (float)(210 * degToRadFactor); ///> [rad]
+const float fr = (30.f * degToRadFactor);  ///> [rad]
+const float fl = (150.f * degToRadFactor); ///> [rad]
+const float mr = (0.f * degToRadFactor); ///> [rad]
+const float ml = (180.f * degToRadFactor); ///> [rad]
+const float br = (330.f * degToRadFactor); ///> [rad]
+const float bl = (210.f * degToRadFactor); ///> [rad]
 } // namespace ANGLES
 
 const float stepLengthMaximum = sinf(25.f * degToRadFactor) *
-                              (dimensions::coxa + dimensions::femur); ///> [m]
+                                (dimensions::coxa + dimensions::femur); ///> [m]
 } // namespace msrh01
 
 namespace gaits
@@ -122,9 +122,9 @@ const uint8_t START_STATES[gaitCount][msrh01::legs] =
 
 namespace tasks
 {
-const uint16_t servoInterval = (uint16_t)100; ///> [ms]
-const uint16_t inputInterval = (uint16_t)50;  ///> [ms]
-const uint16_t outputInterval = (uint16_t)500; ///> [ms]
+const uint16_t servoInterval = static_cast<uint16_t>(100); ///> [ms]
+const uint16_t inputInterval = static_cast<uint16_t>(50);  ///> [ms]
+const uint16_t outputInterval = static_cast<uint16_t>(500); ///> [ms]
 } // namespace tasks
 
 namespace bodyVector
