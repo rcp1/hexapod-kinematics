@@ -1,9 +1,10 @@
 #include "gaitHandler.h"
+#include "helper.h"
 #include "mathConstants.h"
 
 GaitHandler::GaitHandler(KinematicControl& kinematicControl, uint32_t interval, uint8_t gaitNr) :
     MoveHandler(kinematicControl, interval),
-    m_gaitNrAfterTarget(0)
+    m_gaitNrAfterTarget(gaits::stop)
 {
     setGait(gaitNr);
 }
@@ -16,13 +17,13 @@ void GaitHandler::setStartStates()
 {
     for (uint8_t i = 0; i < msrh01::legs; ++i)
     {
-        m_actualLegStates[i] = gaits::START_STATES[m_gaitNr][i];
+        m_actualLegStates[i] = gaits::startStates[m_gaitNr][i];
     }
 }
 
 uint8_t GaitHandler::getStartStates(uint8_t gaitNr, uint8_t legIndex)
 {
-    return gaits::START_STATES[gaitNr][legIndex];
+    return gaits::startStates[gaitNr][legIndex];
 }
 
 void GaitHandler::transition()

@@ -2,13 +2,11 @@
 #define KINEMATICCONTROL_H
 
 #include "defines.h"
-#include "trafoCoordLegToLeg.h"
-#include "trafoCoordBodyToLeg.h"
-#include "trafoCoordBodyToHip.h"
 #include "pose3d.h"
 #include "vector3d.h"
 #include "servoTypes.h"
 #include "interpolationHandler.h"
+#include "kinematicModel.h"
 
 class BodyHandler;
 class GaitHandler;
@@ -34,7 +32,7 @@ public:
 
     void calcInterpolationToInit();
 
-    void calcInterpolationBody(const Pose3d& MCSDesiredBodyPose);
+    void calcInterpolationBody(const Pose3d& bodyPose);
 
     void calcKin();
 
@@ -44,14 +42,13 @@ public:
 
     inline float getSwingLength() { return m_swingLength; };
 
-    inline Pose3d getBodyPose() { return m_MCSBodyPose; };
+    inline Pose3d getBodyPose() { return m_bodyPose; };
 
 private:
-    Vector3d calcKinLeg(const Vector3d& BCSTCPStart, const Pose3d& MCSBody, const uint8_t legIndex);
-
-    Vector3d calcYawedCurve(const Vector3d& MCSTCPInit, const Vector3d& BCSTCPBezier) const;
 
     void initLegServoVectors();
+
+    Vector3d calcYawedCurve(const Vector3d& foot, const uint8_t legIndex) const;
 
     float calcTurnDistance(const float& turnAngle);
 
@@ -59,22 +56,22 @@ private:
 
     float calcArcAngle(const float& radiusOfTurn);
 
+    KinematicModel m_kinematic;
+
     InterpolationHandler& m_interpolation;
+
     GaitHandler& m_gait;
+
     BodyHandler& m_body_pst;
+
     LegServoVector m_legServoVectors_ast[msrh01::legs];
-    Vector3d m_BCSTCPActualGait[msrh01::legs];
 
-    TrafoCoordBodyToLeg m_trafoCoordBodyToLeg;
-    TrafoCoordBodyToHip m_trafoCoordBodyToHip;
-    TrafoCoordLegToLeg m_trafoCoordLegToLeg;
-    TrafoKin3AxisLeg m_trafoKin3AxisLeg;
-
-    Pose3d m_MCSBodyPose;
-    Vector3d m_BCSTCPInit;
+    Pose3d m_bodyPose;
 
     float m_arcAngle; // rad
+
     float m_swingLength; // %
+
     float m_turnDistance; // m
 };
 

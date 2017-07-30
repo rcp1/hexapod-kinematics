@@ -20,8 +20,6 @@ public:
 
     virtual ~TrafoBase();
 
-protected:
-
     /// Forward transformation. Transforms input to output in a "higher" coordinate system.
     /// \param[in]  input       Reference to the input vector
     /// \param[out] output      Reference to the output vector

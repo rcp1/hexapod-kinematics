@@ -1,9 +1,9 @@
 #ifndef GAITHANDLER_H
 #define GAITHANDLER_H
 
-#include "helper.h"
 #include "defines.h"
 #include "moveHandler.h"
+#include <stdint.h>
 
 class GaitHandler : public MoveHandler
 {

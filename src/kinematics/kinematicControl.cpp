@@ -3,7 +3,9 @@
 #include "bodyHandler.h"
 #include "mathConstants.h"
 
+
 KinematicControl::KinematicControl(InterpolationHandler& interpolationHandler, GaitHandler& gaitHandler_pst, BodyHandler& bodyHandler_pst) :
+    m_kinematic(),
     m_interpolation(interpolationHandler),
     m_gait(gaitHandler_pst),
     m_body_pst(bodyHandler_pst),
@@ -11,9 +13,6 @@ KinematicControl::KinematicControl(InterpolationHandler& interpolationHandler, G
     m_swingLength(1.0f),
     m_turnDistance(0.0f)
 {
-    m_trafoKin3AxisLeg.forward(Vector3d(msrh01::anglesInit[msrh01::coxaIndex],
-                                        msrh01::anglesInit[msrh01::femurIndex],
-                                        msrh01::anglesInit[msrh01::tibiaIndex]), m_BCSTCPInit);
     initLegServoVectors();
     setTurnAngle(0.0f);
 }
@@ -25,7 +24,6 @@ void KinematicControl::initLegServoVectors()
         m_legServoVectors_ast[i].setLegIndex(i);
         m_legServoVectors_ast[i].setMoveTime(tasks::servoInterval);
         m_legServoVectors_ast[i].init();
-        m_BCSTCPActualGait[i] = m_BCSTCPInit;
     }
 }
 
@@ -63,24 +61,25 @@ void KinematicControl::setNewBodyPose(const Pose3d& bodyPose)
     {
         calcInterpolationBody(bodyPose);
     }
-    m_MCSBodyPose = bodyPose;
+    m_bodyPose = bodyPose;
 }
 
 void KinematicControl::setInitialBodyPose(const Pose3d& bodyPose)
 {
     m_body_pst.setActualMove(0);
-    m_MCSBodyPose = bodyPose;
+    m_bodyPose = bodyPose;
     calcInterpolationBody(bodyPose);
 }
 
 void KinematicControl::calcInterpolationToStart(uint8_t gaitNr)
 {
-    Vector3d BCSTCPTarget;
+    Vector3d target;
     for (uint8_t i = 0; i < msrh01::legs; ++i)
     {
-        m_trafoCoordLegToLeg.forward(m_BCSTCPInit + m_interpolation.getGaitInterpolation(m_gait.getStartStates(gaitNr, i), i, 0.0f) * m_swingLength * msrh01::stepLengthMaximum, BCSTCPTarget, i);
-        m_trafoCoordBodyToHip.forward(BCSTCPTarget, BCSTCPTarget, i);
-        m_interpolation.calcInterpolationToTarget(i, m_BCSTCPActualGait[i], BCSTCPTarget, m_swingLength * msrh01::stepLengthMaximum);
+        target = m_interpolation.getGaitInterpolation(m_gait.getStartStates(gaitNr, i), i, 0.f);
+        target.x *= m_swingLength * msrh01::stepLengthMaximum;
+        target += m_kinematic.getInitPosition(i);
+        m_interpolation.calcInterpolationToTarget(i, m_kinematic.getActualPosition(i), target, m_swingLength * msrh01::stepLengthMaximum);
     }
 }
 
@@ -88,97 +87,66 @@ void KinematicControl::calcInterpolationToInit()
 {
     for (uint8_t i = 0; i < msrh01::legs; ++i)
     {
-        m_interpolation.calcInterpolationToTarget(i, m_BCSTCPActualGait[i], m_BCSTCPInit, m_swingLength * msrh01::stepLengthMaximum);
+        m_interpolation.calcInterpolationToTarget(i, m_kinematic.getActualPosition(i), m_kinematic.getInitPosition(i), m_swingLength * msrh01::stepLengthMaximum);
     }
 }
 
-void KinematicControl::calcInterpolationBody(const Pose3d& MCSDesiredBodyPose)
+void KinematicControl::calcInterpolationBody(const Pose3d& bodyPose)
 {
-    m_interpolation.calcInterpolationBody(m_MCSBodyPose, MCSDesiredBodyPose);
+    m_interpolation.calcInterpolationBody(m_bodyPose, bodyPose);
 }
 
 void KinematicControl::calcKin()
 {
-    Vector3d ACSTCP;
-    Vector3d BCSTCPBezier;
-    Vector3d MCSBody;
+    Vector3d bezierFoot; ///> foot position in body frame
+    Vector3d footJoint; ///> foot position in joint frame (angles)
 
     for (uint8_t i = 0; i < msrh01::legs; ++i)
     {
         if (m_gait.getLegState(i) != gaits::state::stop)
         {
-            // get actual bezier TCP in BCS of middle right leg
-            BCSTCPBezier = m_interpolation.getGaitInterpolation(m_gait.getLegState(i), i, m_gait.getActualTime());
+            // get actual bezier foot position in body frame
+            bezierFoot = m_interpolation.getGaitInterpolation(m_gait.getLegState(i), i, m_gait.getActualTime());
+            if (m_gait.getLegState(i) != gaits::state::targetSwing)
+            {
+                bezierFoot = calcYawedCurve(bezierFoot, i);
+            }
         }
         else
         {
-            BCSTCPBezier = m_BCSTCPActualGait[i];
+            bezierFoot = m_kinematic.getActualPosition(i);
         }
-        m_MCSBodyPose = m_interpolation.getBodyInterpolation(m_body_pst.getActualTime());
+        m_bodyPose = m_interpolation.getBodyInterpolation(m_body_pst.getActualTime());
 
-        ACSTCP = calcKinLeg(BCSTCPBezier, m_MCSBodyPose, i);
+        trafoStatus result = m_kinematic.calcJointAngles(bezierFoot, m_bodyPose, i, footJoint);
+
+        m_legServoVectors_ast[i].setTrafoVector(footJoint);
         // set new ACS TCP
-        m_legServoVectors_ast[i].setTrafoVector(ACSTCP);
     }
 }
 
-Vector3d KinematicControl::calcKinLeg(const Vector3d& BCSTCPStart, const Pose3d& MCSBody, const uint8_t legIndex)
+Vector3d KinematicControl::calcYawedCurve(const Vector3d& foot, const uint8_t legIndex) const
 {
-    Vector3d MCSTCPInit;
-    Vector3d MCSTCPnew;
-    Vector3d BCSTCPBezier;
-    Vector3d ACSTCP;
-
-    Pose3d BCSTCPBezierAndBody;
-
-    BCSTCPBezier = BCSTCPStart;
-
-    // get init position of leg in MCS
-    m_trafoCoordLegToLeg.forward(m_BCSTCPInit, MCSTCPInit, legIndex);
-
-    if (m_gait.getGait() != gaits::type::target)
-    {
-        MCSTCPnew = calcYawedCurve(MCSTCPInit, BCSTCPBezier);
-
-        // transform yawed Bezier MCS TCP to BCS
-        m_trafoCoordBodyToHip.forward(MCSTCPnew, BCSTCPBezier, legIndex);
-    }
-    m_BCSTCPActualGait[legIndex] = BCSTCPBezier;
-    // calculate desired body position with actual Bezier TCP
-    m_trafoCoordBodyToLeg.forward(MCSBody, BCSTCPBezier, BCSTCPBezierAndBody, legIndex);
-
-    // get TCP in ACS
-    trafoStatus result = m_trafoKin3AxisLeg.backward(BCSTCPBezierAndBody.m_position, ACSTCP);
-    if (result != trafoOk)
-    {
-        Serial.print("Trafo Error: "); Serial.println(result);
-        ACSTCP = m_legServoVectors_ast[legIndex].getTrafoVector();
-    }
-
-    return ACSTCP;
-}
-
-Vector3d KinematicControl::calcYawedCurve(const Vector3d& MCSTCPInit, const Vector3d& BCSTCPBezier) const
-{
-    Vector3d MCSTCPnew;
-    MCSTCPnew = MCSTCPInit;
+    Vector3d yawedFoot;
+    yawedFoot = m_kinematic.getInitPosition(legIndex);
 
     // translate to center of rotation
-    MCSTCPnew.y -= m_turnDistance;
+    yawedFoot.y -= m_turnDistance;
 
     // cart to polar
-    const float r = sqrtf(pow(MCSTCPnew.x, 2) + pow(MCSTCPnew.y, 2));
-    const float phi = atan2f(MCSTCPnew.y, MCSTCPnew.x) + BCSTCPBezier.x * m_arcAngle;
+    const float r = sqrtf(pow(yawedFoot.x, 2) + pow(yawedFoot.y, 2));
+    const float phi = atan2f(yawedFoot.y, yawedFoot.x) + foot.x * m_arcAngle;
 
     // pol to cart
-    MCSTCPnew.x = r * cosf(phi);
-    MCSTCPnew.y = r * sinf(phi);
+    yawedFoot.x = r * cosf(phi);
+    yawedFoot.y = r * sinf(phi);
 
     // translate back to center of robot
-    MCSTCPnew.y += m_turnDistance;
-    MCSTCPnew.z = MCSTCPInit.z + m_swingLength * msrh01::stepLengthMaximum * BCSTCPBezier.z;
+    yawedFoot.y += m_turnDistance;
+    yawedFoot.z = m_kinematic.getInitPosition(legIndex).z + m_swingLength * msrh01::stepLengthMaximum * foot.z;
 
-    return MCSTCPnew;
+
+    return yawedFoot;
 }
 
 void KinematicControl::setServos()
@@ -216,14 +184,14 @@ float KinematicControl::calcTurnDistance(const float& turnAngle)
 float KinematicControl::calcMaxTurnRadiusOfLegs(const float &turnDistance)
 {
     float maxRadiusOfTurn = 0.0f;
-    Vector3d MCSInit;
+    Vector3d init;
 
     for (uint8_t i = 0; i < msrh01::legs; ++i)
     {
-        m_trafoCoordBodyToHip.backward(m_BCSTCPInit, MCSInit, i);
-        MCSInit.y -= turnDistance;
+        init = m_kinematic.getInitPosition(i);
+        init.y -= turnDistance;
         // cart to polar
-        const float r = sqrtf(pow(MCSInit.x, 2) + pow(MCSInit.y, 2));
+        const float r = sqrtf(pow(init.x, 2) + pow(init.y, 2));
         if (r >= maxRadiusOfTurn)
         {
             maxRadiusOfTurn = r;
@@ -235,7 +203,7 @@ float KinematicControl::calcMaxTurnRadiusOfLegs(const float &turnDistance)
     return maxRadiusOfTurn;
 }
 
-float KinematicControl::calcArcAngle(const float &radiusOfTurn)
+float KinematicControl::calcArcAngle(const float& radiusOfTurn)
 {
     return (m_swingLength * msrh01::stepLengthMaximum) / radiusOfTurn;
 }

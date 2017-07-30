@@ -1,22 +1,22 @@
-#include "trafoKin3AxisLeg.h"
+#include "trafoHipToJointFrame.h"
 #include "defines.h"
 #include "compute.h"
 #include "mathConstants.h"
 
-const float TrafoKin3AxisLeg::m_femurLength = msrh01::dimensions::femur;
-const float TrafoKin3AxisLeg::m_tibiaLength = msrh01::dimensions::tibia;
-const float TrafoKin3AxisLeg::m_coxaLength = msrh01::dimensions::coxa;
+const float TrafoHipToJointFrame::m_femurLength = msrh01::dimensions::femur;
+const float TrafoHipToJointFrame::m_tibiaLength = msrh01::dimensions::tibia;
+const float TrafoHipToJointFrame::m_coxaLength = msrh01::dimensions::coxa;
 
-TrafoKin3AxisLeg::TrafoKin3AxisLeg()
+TrafoHipToJointFrame::TrafoHipToJointFrame()
 {
 }
 
 
-TrafoKin3AxisLeg::~TrafoKin3AxisLeg()
+TrafoHipToJointFrame::~TrafoHipToJointFrame()
 {
 }
 
-trafoStatus TrafoKin3AxisLeg::forward(const Vector3d& input, Vector3d& output) const
+trafoStatus TrafoHipToJointFrame::forward(const Vector3d& input, Vector3d& output) const
 {
     using namespace math;
 
@@ -25,18 +25,18 @@ trafoStatus TrafoKin3AxisLeg::forward(const Vector3d& input, Vector3d& output) c
 
     phi1 = input[0];
     phi2s = input[1];
-    phi3 = (float)fabs(HALF_PI - input[2]);
+    phi3 = fabs(HALF_PI - input[2]);
 
     // get third length of triangle BCTCP (d)
     d = sqrtf(power(m_femurLength, 2) + power(m_tibiaLength, 2) - 2.f * m_femurLength * m_tibiaLength * cosf(phi3));
-    if ((float)fabs(d) < math::epsilonFloat)
+    if (fabs(d) < math::epsilonFloat)
     {
         return trafoErrorSingularPosition; // d can't be 0 (no triangle)
     }
 
     // get xz-angle at B (phi2)
     temp = (power(m_femurLength, 2) + power(d, 2) - power(m_tibiaLength, 2)) / (2.f * m_femurLength * d);
-    if ((float)fabs(temp) > 1.f)
+    if (fabs(temp) > 1.f)
     {
         return trafoErrorSingularPosition; // acos is not defined for |x| > 1, catch possible failure (no triangle)
     }
@@ -56,7 +56,7 @@ trafoStatus TrafoKin3AxisLeg::forward(const Vector3d& input, Vector3d& output) c
     return result;
 }
 
-trafoStatus TrafoKin3AxisLeg::checkAngles(const float& phi1, const float& phi2, const float& phi3) const
+trafoStatus TrafoHipToJointFrame::checkAngles(const float& phi1, const float& phi2, const float& phi3) const
 {
     if (phi1 >= HALF_PI || phi1 <= -HALF_PI)
         return trafoErrorInputOutOfBonds;
@@ -67,7 +67,7 @@ trafoStatus TrafoKin3AxisLeg::checkAngles(const float& phi1, const float& phi2, 
     return trafoOk;
 }
 
-trafoStatus TrafoKin3AxisLeg::backward(const Vector3d& input, Vector3d& output) const
+trafoStatus TrafoHipToJointFrame::backward(const Vector3d& input, Vector3d& output) const
 {
     using namespace math;
 
@@ -85,14 +85,14 @@ trafoStatus TrafoKin3AxisLeg::backward(const Vector3d& input, Vector3d& output) 
     {
         return trafoErrorSingularPosition; // distance to goal point can't be greater than joint lengths together
     }
-    if ((float)fabs(d) < math::epsilonFloat)
+    if (fabs(d) < math::epsilonFloat)
     {
         return trafoErrorSingularPosition; // break here, otherwise zero division later
     }
 
     // get angle at C (phi3)
     temp = (power(m_femurLength, 2) + power(m_tibiaLength, 2) - power(d, 2)) / (2.f * m_femurLength * m_tibiaLength);
-    if ((float)fabs(temp) > 1.f)
+    if (fabs(temp) > 1.f)
     {
         return trafoErrorSingularPosition; // acos is not defined for |x| > 1, catch possible failure (no triangle)
     }

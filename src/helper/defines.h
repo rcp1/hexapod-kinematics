@@ -91,7 +91,7 @@ const float bodyToMidLegsX = 0.f; ///> [m]
 const float bodyToMidLegsY = 0.06f; ///> [m]
 } // namespace dimensions
 
-namespace ANGLES
+namespace angles
 {
 const float fr = (30.f * degToRadFactor);  ///> [rad]
 const float fl = (150.f * degToRadFactor); ///> [rad]
@@ -110,7 +110,7 @@ namespace gaits
 enum type { target, tripod, wave, ripple, gaitCount };
 enum state { stop, targetSwing, stance, swing, stateCount };
 
-const uint8_t START_STATES[gaitCount][msrh01::legs] =
+const uint8_t startStates[gaitCount][msrh01::legs] =
 {
     targetSwing, stop, stop, stop, stop, stop, // target
     swing, stance, stance, swing,  swing,  stance, // tripod
