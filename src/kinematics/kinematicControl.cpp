@@ -9,12 +9,13 @@ KinematicControl::KinematicControl(InterpolationHandler& interpolationHandler, G
     m_interpolation(interpolationHandler),
     m_gait(gaitHandler_pst),
     m_body_pst(bodyHandler_pst),
-    m_arcAngle(0.0f),
+    m_maxRadiusOfTurn(0.0f),
+    m_moveAngle(0.0f),
     m_swingLength(1.0f),
-    m_turnDistance(0.0f)
+    m_turnRadius(0.0f)
 {
     initLegServoVectors();
-    setTurnAngle(0.0f);
+    setCurvature(0.0f);
 }
 
 void KinematicControl::initLegServoVectors()
@@ -39,19 +40,21 @@ void KinematicControl::setServoMoveTime(uint16_t moveTime)
     }
 }
 
-void KinematicControl::setTurnAngle(const float& turnAngle)
+void KinematicControl::setCurvature(float curvature)
 {
-    m_turnDistance = calcTurnDistance(turnAngle);
-
-    const float maxRadiusOfTurn = calcMaxTurnRadiusOfLegs(m_turnDistance);
-    m_arcAngle = calcArcAngle(maxRadiusOfTurn);
+    calcTurnRadius(curvature);
+    m_maxRadiusOfTurn = calcMaxTurnRadiusOfLegs();
 }
 
-void KinematicControl::setSwingLength(const float& swingLength)
+void KinematicControl::setSwingLength(float swingLength)
 {
     m_swingLength = swingLength;
-    const float maxRadiusOfTurn = calcMaxTurnRadiusOfLegs(m_turnDistance);
-    m_arcAngle = calcArcAngle(maxRadiusOfTurn);
+    m_maxRadiusOfTurn = calcMaxTurnRadiusOfLegs();
+}
+
+void KinematicControl::setMoveAngle(float moveAngle)
+{
+    m_moveAngle = moveAngle;
 }
 
 void KinematicControl::setNewBodyPose(const Pose3d& bodyPose)
@@ -98,55 +101,69 @@ void KinematicControl::calcInterpolationBody(const Pose3d& bodyPose)
 
 void KinematicControl::calcKin()
 {
-    Vector3d bezierFoot; ///> foot position in body frame
+    Vector3d foot; ///> foot position in body frame
     Vector3d footJoint; ///> foot position in joint frame (angles)
 
     for (uint8_t i = 0; i < msrh01::legs; ++i)
     {
-        if (m_gait.getLegState(i) != gaits::state::stop)
+        if (m_gait.getLegState(i) == gaits::state::stop)
         {
-            // get actual bezier foot position in body frame
-            bezierFoot = m_interpolation.getGaitInterpolation(m_gait.getLegState(i), i, m_gait.getActualTime());
-            if (m_gait.getLegState(i) != gaits::state::targetSwing)
-            {
-                bezierFoot = calcYawedCurve(bezierFoot, i);
-            }
+            foot = m_kinematic.getActualPosition(i);
         }
         else
         {
-            bezierFoot = m_kinematic.getActualPosition(i);
+            // get actual bezier foot position in body frame
+            const Vector3d bezierFoot = m_interpolation.getGaitInterpolation(m_gait.getLegState(i), i, m_gait.getActualTime());
+
+            if (m_gait.getLegState(i) == gaits::state::targetSwing)
+            {
+                foot = bezierFoot;
+            }
+            else
+            {
+                foot = calcMoveDirection(bezierFoot, i);
+            }
         }
+
+        // get actual body pose in body frame
         m_bodyPose = m_interpolation.getBodyInterpolation(m_body_pst.getActualTime());
 
-        trafoStatus result = m_kinematic.calcJointAngles(bezierFoot, m_bodyPose, i, footJoint);
+        trafoStatus trafoStatus = m_kinematic.calcJointAngles(foot, m_bodyPose, i, footJoint);
+        if (trafoStatus == trafoOk)
+        {
+            // set new foot position in joint frame
+            m_legServoVectors_ast[i].setTrafoVector(footJoint);
+        }
 
-        m_legServoVectors_ast[i].setTrafoVector(footJoint);
-        // set new ACS TCP
     }
 }
 
-Vector3d KinematicControl::calcYawedCurve(const Vector3d& foot, const uint8_t legIndex) const
+Vector3d KinematicControl::calcMoveDirection(const Vector3d& bezierFoot, const uint8_t legIndex) const
 {
-    Vector3d yawedFoot;
-    yawedFoot = m_kinematic.getInitPosition(legIndex);
+    // scale Bezier curve with step length
+    const Vector3d scaledFoot = bezierFoot * m_swingLength * msrh01::stepLengthMaximum;
+    // rotate center of rotation to desired move direction
+    const Vector3d toRotationFrame = math::rotateZ(Vector3d(0.f, m_turnRadius, 0.f), m_moveAngle);
 
-    // translate to center of rotation
-    yawedFoot.y -= m_turnDistance;
+    Vector3d foot = m_kinematic.getInitPosition(legIndex);
 
-    // cart to polar
-    const float r = sqrtf(pow(yawedFoot.x, 2) + pow(yawedFoot.y, 2));
-    const float phi = atan2f(yawedFoot.y, yawedFoot.x) + foot.x * m_arcAngle;
+    // translate to frame of rotation
+    foot -= toRotationFrame;
 
-    // pol to cart
-    yawedFoot.x = r * cosf(phi);
-    yawedFoot.y = r * sinf(phi);
+    // cartesian to polar
+    const float r = sqrtf(pow(foot.x, 2) + pow(foot.y, 2));
+    // add yaw angle to phi
+    const float phi = atan2f(foot.y, foot.x) + scaledFoot.x / m_maxRadiusOfTurn;
 
-    // translate back to center of robot
-    yawedFoot.y += m_turnDistance;
-    yawedFoot.z = m_kinematic.getInitPosition(legIndex).z + m_swingLength * msrh01::stepLengthMaximum * foot.z;
+    // polar to cartesian
+    foot.x = r * cosf(phi);
+    foot.y = r * sinf(phi);
 
+    // translate back to frame of body
+    foot += toRotationFrame;
+    foot.z = m_kinematic.getInitPosition(legIndex).z + scaledFoot.z;
 
-    return yawedFoot;
+    return foot;
 }
 
 void KinematicControl::setServos()
@@ -157,55 +174,41 @@ void KinematicControl::setServos()
     }
 }
 
-float KinematicControl::calcTurnDistance(const float& turnAngle)
+void KinematicControl::calcTurnRadius(float curvature)
 {
-    float turnDistance = 0.f;
-
-    if (fabs((turnAngle + 1.f)) < math::epsilonFloat)
+    if (fabs(curvature) > curvatureTolerance)
     {
-        turnDistance = tanf((0.f - math::epsilonFloat) * M_PI_2);
+        m_turnRadius = 1.f / curvature;
     }
-    else if (fabs((turnAngle - 1.f)) < math::epsilonFloat)
+    else
     {
-        turnDistance = tanf((0.f + math::epsilonFloat) * M_PI_2);
+        // straight walking
+        m_turnRadius = 10000.f;
     }
-    else if (abs(turnAngle) <= toleranceTurn)
-    {
-        turnDistance = tanf((1.f - toleranceTurn) * M_PI_2);
-    }
-    else if (fabs(turnAngle) > toleranceTurn)
-    {
-        turnDistance = tanf((1.f - turnAngle) * M_PI_2);
-    }
-
-    return turnDistance;
 }
 
-float KinematicControl::calcMaxTurnRadiusOfLegs(const float &turnDistance)
+float KinematicControl::calcMaxTurnRadiusOfLegs()
 {
-    float maxRadiusOfTurn = 0.0f;
+    float maxLegTurnRadius = 0.f;
     Vector3d init;
 
     for (uint8_t i = 0; i < msrh01::legs; ++i)
     {
         init = m_kinematic.getInitPosition(i);
-        init.y -= turnDistance;
+        init.y -= m_turnRadius;
+
         // cart to polar
         const float r = sqrtf(pow(init.x, 2) + pow(init.y, 2));
-        if (r >= maxRadiusOfTurn)
+
+        if (r >= maxLegTurnRadius)
         {
-            maxRadiusOfTurn = r;
+            maxLegTurnRadius = r;
         }
     }
-    if (turnDistance < 0.f)
-        maxRadiusOfTurn = -maxRadiusOfTurn;
+    if (m_turnRadius < 0.f)
+        maxLegTurnRadius = -maxLegTurnRadius;
 
-    return maxRadiusOfTurn;
-}
-
-float KinematicControl::calcArcAngle(const float& radiusOfTurn)
-{
-    return (m_swingLength * msrh01::stepLengthMaximum) / radiusOfTurn;
+    return maxLegTurnRadius;
 }
 
 float KinematicControl::calcSwingTime(const float& speed) const
@@ -213,7 +216,7 @@ float KinematicControl::calcSwingTime(const float& speed) const
     if ((float)fabs(speed) > math::epsilonFloat)
     {
         // m_swing [m] / (v_act [m/s] / 1000) [m/ms]
-        return maximum(((m_swingLength * msrh01::stepLengthMaximum) / ((float)fabs(speed) / 1000.0f)), 300.0f);
+        return maximum(((m_swingLength * msrh01::stepLengthMaximum) / ((float)fabs(speed) / 1000.f)), 300.f);
     }
     else
     {

@@ -173,11 +173,11 @@ void Scheduler::getSerialInput()
         break;
     case turnDistancePlus:
         m_turnAngle = minimum(m_turnAngle + m_increaseTurnAngle, 1.f);
-        m_kinControl.setTurnAngle(m_turnAngle);
+        m_kinControl.setCurvature(m_turnAngle);
         break;
     case turnDistanceMinus:
         m_turnAngle = maximum(m_turnAngle - m_increaseTurnAngle, -1.f);
-        m_kinControl.setTurnAngle(m_turnAngle);
+        m_kinControl.setCurvature(m_turnAngle);
         break;
     case start:
         m_gaitHandler.setGait(gaits::type::target);
@@ -225,8 +225,25 @@ void Scheduler::parseComplexCmd()
     }
 
     m_turnAv.addValue(getFloatFromPercentCmd(2, 1.f));
-    m_turnAngle = limit(-1.f, m_turnAv.getAverage(), 1.f);
-    m_kinControl.setTurnAngle(m_turnAngle);
+    m_turnAngle = limit(-1.f, m_turnAv.getAverage(), 1.f) * 90.0f;
+    m_kinControl.setMoveAngle(math::deg2rad(m_turnAngle));
+//    m_kinControl.setCurvature(0.f);
+//    if (fabs((curvature + 1.f)) < math::epsilonFloat)
+//    {
+//        turnDistance = tanf((0.f - math::epsilonFloat) * M_PI_2);
+//    }
+//    else if (fabs((curvature - 1.f)) < math::epsilonFloat)
+//    {
+//        turnDistance = tanf((0.f + math::epsilonFloat) * M_PI_2);
+//    }
+//    else if (abs(curvature) <= curvatureTolerance)
+//    {
+//        turnDistance = tanf((1.f - curvatureTolerance) * M_PI_2);
+//    }
+//    else if (fabs(curvature) > curvatureTolerance)
+//    {
+//        turnDistance = tanf((1.f - curvature) * M_PI_2);
+//    }
 
     Pose3d bodyVector = m_kinControl.getBodyPose();
     bodyVector.m_orientation.phi = getFloatFromPercentCmd(3, bodyVector::limits::rotation);

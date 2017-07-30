@@ -20,9 +20,11 @@ public:
 
     void setServoMoveTime(uint16_t moveTime);
 
-    void setTurnAngle(const float& turnAngle);
+    void setCurvature(float curvature);
 
-    void setSwingLength(const float& swingLength);
+    void setSwingLength(float swingLength);
+
+    void setMoveAngle(float moveAngle);
 
     void setNewBodyPose(const Pose3d& bodyPose);
 
@@ -48,13 +50,11 @@ private:
 
     void initLegServoVectors();
 
-    Vector3d calcYawedCurve(const Vector3d& foot, const uint8_t legIndex) const;
+    Vector3d calcMoveDirection(const Vector3d& foot, const uint8_t legIndex) const;
 
-    float calcTurnDistance(const float& turnAngle);
+    void calcTurnRadius(float curvature);
 
-    float calcMaxTurnRadiusOfLegs(const float& turnDistance);
-
-    float calcArcAngle(const float& radiusOfTurn);
+    float calcMaxTurnRadiusOfLegs();
 
     KinematicModel m_kinematic;
 
@@ -68,11 +68,13 @@ private:
 
     Pose3d m_bodyPose;
 
-    float m_arcAngle; // rad
+    float m_maxRadiusOfTurn; // m
+
+    float m_moveAngle; // rad
 
     float m_swingLength; // %
 
-    float m_turnDistance; // m
+    float m_turnRadius; // m
 };
 
 #endif // KINEMATICCONTROL_H

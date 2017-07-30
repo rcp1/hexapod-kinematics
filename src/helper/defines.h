@@ -40,7 +40,7 @@ const uint8_t sd21CountRegistersPerLeg = static_cast<uint8_t>9;
 const uint32_t ssc32Baudrate = 115200UL;
 #endif
 
-const float toleranceTurn = 0.005f;
+const float curvatureTolerance = 0.005f;
 
 namespace tV
 {
